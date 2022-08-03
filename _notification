@@ -1,0 +1,9 @@
+#!/bin/bash
+
+RESULTS=$(node index.js)
+
+if [[ -n "$RESULTS" ]]; then
+  notify-send "PS5 Leitud!!!" $RESULTS
+fi
+
+
