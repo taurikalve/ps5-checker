@@ -8,7 +8,7 @@ const { range } = require('./utils');
 
 const hourRange = new Set([...range(6, 23), 0]);
 const intervalHours = 4;
-const estimatedPrice = 450;
+const estimatedPriceMin = 450;
 const estimatedPriceMax = 650;
 const sites = {
   Telia: 'https://pood.telia.ee/mangukonsoolid',
@@ -68,31 +68,31 @@ async function scraper() {
           case 'Tele2':
             products = await page.$$eval(
               '.catalog-item div[data-test="fullPrice"]',
-              (nodes, estimatedPrice) =>
+              (nodes, estimatedPriceMin) =>
                 nodes.map(
-                  (node) => parseFloat(node.innerText) > estimatedPrice,
+                  (node) => parseFloat(node.innerText) > estimatedPriceMin,
                 ),
-              estimatedPrice,
+              estimatedPriceMin,
             );
             break;
           case 'Elisa':
             products = await page.$$eval(
               '.products-list__item span[data-test-id="secondary-price"]',
-              (nodes, estimatedPrice) =>
+              (nodes, estimatedPriceMin) =>
                 nodes.map(
-                  (node) => parseFloat(node.innerText) > estimatedPrice,
+                  (node) => parseFloat(node.innerText) > estimatedPriceMin,
                 ),
-              estimatedPrice,
+              estimatedPriceMin,
             );
             break;
           case 'Miterassa':
             products = await page.$$eval(
               '.products-list li .price span',
-              (nodes, estimatedPrice) =>
+              (nodes, estimatedPriceMin) =>
                 nodes.map(
-                  (node) => parseFloat(node.innerText) > estimatedPrice,
+                  (node) => parseFloat(node.innerText) > estimatedPriceMin,
                 ),
-              estimatedPrice,
+              estimatedPriceMin,
             );
             break;
           case 'Arvutitark':
