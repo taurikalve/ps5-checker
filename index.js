@@ -107,8 +107,9 @@ async function scraper() {
             );
             break;
         }
-        if (products.includes(true)) results.push(site);
-        console.log(site, products.includes(true));
+        const productsBool = products.includes(true);
+        if (productsBool) results.push(site);
+        console.log(site, productsBool);
       }),
     );
 
