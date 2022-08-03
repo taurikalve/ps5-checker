@@ -1,6 +1,6 @@
 log*
 dev.js
-test.js
+debug.js
 pildid/*
 
 # Logs
