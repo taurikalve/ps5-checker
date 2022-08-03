@@ -6,10 +6,10 @@ const pptr = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const { range } = require('./utils');
 
-const hourRange = new Set([...range(6, 23), 0]);
 const intervalHours = 4;
 const estimatedPriceMin = 450;
 const estimatedPriceMax = 650;
+const hourRange = new Set([...range(6, 23), 0]);
 const sites = {
   Telia: 'https://pood.telia.ee/mangukonsoolid',
   Euronics: 'https://www.euronics.ee/meelelahutus/mangukonsoolid/playstation',
