@@ -7,8 +7,8 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const { range } = require('./utils');
 
 const intervalHours = 4;
-const estimatedPriceMin = 450;
-const estimatedPriceMax = 650;
+const estimatedPriceMin = 451;
+const estimatedPriceMax = 651;
 const hourRange = new Set([...range(6, 23), 0]);
 const sites = {
   Telia: 'https://pood.telia.ee/mangukonsoolid',
@@ -18,6 +18,7 @@ const sites = {
   Miterassa:
     'https://www.miterassa.ee/sonycenter/et/e-pood/gaming/mangukonsoolid-1/',
   Arvutitark: 'https://arvutitark.ee/est/Otsing?q=ps5&cat=83',
+  bigbox: 'https://bigbox.ee/playstation-5-123456820',
 };
 const logFile = 'log';
 
@@ -98,11 +99,22 @@ async function scraper() {
           case 'Arvutitark':
             products = await page.$$eval(
               '.products-list li .pricecontainer .price:not([style])',
-              (nodes) =>
+              (nodes, estimatedPriceMax) =>
                 nodes.map(
-                  (node, estimatedPriceMax) =>
-                    parseFloat(node.innerText) < estimatedPriceMax,
+                  (node) => parseFloat(node.innerText) < estimatedPriceMax,
                 ),
+              estimatedPriceMax,
+            );
+            break;
+          case 'bigbox':
+            products = await page.$$eval(
+              '.category-item .product-price',
+              (nodes, estimatedPriceMin, estimatedPriceMax) =>
+                nodes.map((node) => {
+                  const price = parseFloat(node.innerText);
+                  return price < estimatedPriceMax && price > estimatedPriceMin;
+                }),
+              estimatedPriceMin,
               estimatedPriceMax,
             );
             break;
