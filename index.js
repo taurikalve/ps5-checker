@@ -36,11 +36,11 @@ async function scraper() {
   });
 
   try {
+    console.log(new Date().toLocaleTimeString('et'));
     browser = await pptr.launch();
 
     await Promise.all(
       Object.entries(sites).map(async ([site, url]) => {
-        console.log(site, 'started');
         const page = await browser.newPage();
         await page.setViewport({ width: 1920, height: 965 });
 
@@ -143,7 +143,7 @@ async function scraper() {
         }
         const productsBool = products.includes(true);
         if (productsBool) results.push(site);
-        console.log(site, productsBool);
+        if (process.env.DEBUG) console.log(site, productsBool);
       }),
     );
 
@@ -153,6 +153,7 @@ async function scraper() {
     } else {
       results = 'pole';
     }
+    console.log(results);
     await execPromise(`echo "$(date) - ${results}" >> ${__dirname}/${logFile}`);
   } catch (err) {
     console.error(err);
@@ -186,7 +187,7 @@ function scheduler() {
 (async function () {
   await new Promise((resolve) => {
     setTimeout(async () => {
-      await scraper();
+      await scraper().catch((err) => console.error(err));
       resolve();
     }, 10000); // 10s
   });
