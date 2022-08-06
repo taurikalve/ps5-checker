@@ -125,11 +125,11 @@ async function scraper() {
               (nodes, estimatedPriceMin, estimatedPriceMax) =>
                 nodes.map((node) => {
                   const price = parseFloat(
-                    node.querySelector('.price.price-large')?.innerText,
+                    node.querySelector('.price.price-large').innerText,
                   );
                   const name = node
                     .querySelector('a.product-name')
-                    ?.innerText.toLowerCase();
+                    .innerText.toLowerCase();
                   return (
                     (name.includes('playstation 5') || name.includes('ps5')) &&
                     price < estimatedPriceMax &&
