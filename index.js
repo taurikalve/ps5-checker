@@ -19,6 +19,7 @@ const sites = {
     'https://www.miterassa.ee/sonycenter/et/e-pood/gaming/mangukonsoolid-1/',
   Arvutitark: 'https://arvutitark.ee/est/Otsing?q=ps5&cat=83',
   bigbox: 'https://bigbox.ee/playstation-5-123456820',
+  HV: 'https://www.hinnavaatlus.ee/search/?query=playstation+5&minPrice=450',
 };
 const logFile = 'log';
 
@@ -113,6 +114,27 @@ async function scraper() {
                 nodes.map((node) => {
                   const price = parseFloat(node.innerText);
                   return price < estimatedPriceMax && price > estimatedPriceMin;
+                }),
+              estimatedPriceMin,
+              estimatedPriceMax,
+            );
+            break;
+          case 'HV':
+            products = await page.$$eval(
+              '.products tr:not(.head)',
+              (nodes, estimatedPriceMin, estimatedPriceMax) =>
+                nodes.map((node) => {
+                  const price = parseFloat(
+                    node.querySelector('.price.price-large')?.innerText,
+                  );
+                  const name = node
+                    .querySelector('a.product-name')
+                    ?.innerText.toLowerCase();
+                  return (
+                    (name.includes('playstation 5') || name.includes('ps5')) &&
+                    price < estimatedPriceMax &&
+                    price > estimatedPriceMin
+                  );
                 }),
               estimatedPriceMin,
               estimatedPriceMax,
