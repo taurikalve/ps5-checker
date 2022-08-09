@@ -44,106 +44,139 @@ async function scraper() {
         const page = await browser.newPage();
         await page.setViewport({ width: 1920, height: 965 });
 
-        await page.goto(url, { waitUntil: 'networkidle2' });
-        await page.waitForTimeout(10000); // 10s
+        await page.goto(url, { waitUntil: 'domcontentloaded' });
+        await page.waitForTimeout(15000); // 15s
 
-        switch (site) {
-          case 'Telia':
-            products = await page.$$eval('.product-card__title-name', (nodes) =>
-              nodes.map((node) =>
-                node.innerText.toLowerCase().includes('playstation'),
-              ),
-            );
-            break;
-          case 'Euronics':
-            products = await page.$$eval(
-              '.product-card__list article',
-              (nodes) =>
+        try {
+          let selector;
+          switch (site) {
+            case 'Telia':
+              selector = '.product-card__title-name';
+              await page.waitForSelector(selector);
+              products = await page.$$eval(selector, (nodes) =>
+                nodes.map((node) =>
+                  node.innerText.toLowerCase().includes('playstation'),
+                ),
+              );
+              break;
+            case 'Euronics':
+              selector = '.product-card__list article';
+              await Promise.race([
+                page.waitForSelector('body > div:not([class])'),
+                page.waitForSelector(selector),
+              ]);
+              products = await page.$$eval(selector, (nodes) =>
                 nodes.map((node) =>
                   node
                     .getAttribute('data-product-name')
                     .toLowerCase()
                     .includes('playstation'),
                 ),
-            );
-            break;
-          case 'Tele2':
-            products = await page.$$eval(
-              '.catalog-item div[data-test="fullPrice"]',
-              (nodes, estimatedPriceMin) =>
-                nodes.map(
-                  (node) => parseFloat(node.innerText) > estimatedPriceMin,
-                ),
-              estimatedPriceMin,
-            );
-            break;
-          case 'Elisa':
-            products = await page.$$eval(
-              '.products-list__item span[data-test-id="secondary-price"]',
-              (nodes, estimatedPriceMin) =>
-                nodes.map(
-                  (node) => parseFloat(node.innerText) > estimatedPriceMin,
-                ),
-              estimatedPriceMin,
-            );
-            break;
-          case 'Miterassa':
-            products = await page.$$eval(
-              '.products-list li .price span',
-              (nodes, estimatedPriceMin) =>
-                nodes.map(
-                  (node) => parseFloat(node.innerText) > estimatedPriceMin,
-                ),
-              estimatedPriceMin,
-            );
-            break;
-          case 'Arvutitark':
-            products = await page.$$eval(
-              '.products-list li .pricecontainer .price:not([style])',
-              (nodes, estimatedPriceMax) =>
-                nodes.map(
-                  (node) => parseFloat(node.innerText) < estimatedPriceMax,
-                ),
-              estimatedPriceMax,
-            );
-            break;
-          case 'bigbox':
-            products = await page.$$eval(
-              '.category-item .product-price',
-              (nodes, estimatedPriceMin, estimatedPriceMax) =>
-                nodes.map((node) => {
-                  const price = parseFloat(node.innerText);
-                  return price < estimatedPriceMax && price > estimatedPriceMin;
-                }),
-              estimatedPriceMin,
-              estimatedPriceMax,
-            );
-            break;
-          case 'HV':
-            products = await page.$$eval(
-              '.products tr:not(.head)',
-              (nodes, estimatedPriceMin, estimatedPriceMax) =>
-                nodes.map((node) => {
-                  const price = parseFloat(
-                    node.querySelector('.price.price-large').innerText,
-                  );
-                  const name = node
-                    .querySelector('a.product-name')
-                    .innerText.toLowerCase();
-                  return (
-                    (name.includes('playstation 5') || name.includes('ps5')) &&
-                    price < estimatedPriceMax &&
-                    price > estimatedPriceMin
-                  );
-                }),
-              estimatedPriceMin,
-              estimatedPriceMax,
-            );
-            break;
+              );
+              break;
+            case 'Tele2':
+              selector = '.catalog-item div[data-test="fullPrice"]';
+              await page.waitForSelector(selector);
+              products = await page.$$eval(
+                selector,
+                (nodes, estimatedPriceMin) =>
+                  nodes.map(
+                    (node) => parseFloat(node.innerText) > estimatedPriceMin,
+                  ),
+                estimatedPriceMin,
+              );
+              break;
+            case 'Elisa':
+              selector =
+                '.products-list__item span[data-test-id="secondary-price"]';
+              await page.waitForSelector(selector);
+              products = await page.$$eval(
+                selector,
+                (nodes, estimatedPriceMin) =>
+                  nodes.map(
+                    (node) => parseFloat(node.innerText) > estimatedPriceMin,
+                  ),
+                estimatedPriceMin,
+              );
+              break;
+            case 'Miterassa':
+              selector = '.products-list li .price span';
+              await page.waitForSelector(selector);
+              products = await page.$$eval(
+                selector,
+                (nodes, estimatedPriceMin) =>
+                  nodes.map(
+                    (node) => parseFloat(node.innerText) > estimatedPriceMin,
+                  ),
+                estimatedPriceMin,
+              );
+              break;
+            case 'Arvutitark':
+              selector =
+                '.products-list li .pricecontainer .price:not([style])';
+              await page.waitForSelector(selector);
+              products = await page.$$eval(
+                selector,
+                (nodes, estimatedPriceMax) =>
+                  nodes.map(
+                    (node) => parseFloat(node.innerText) < estimatedPriceMax,
+                  ),
+                estimatedPriceMax,
+              );
+              break;
+            case 'bigbox':
+              selector = '.category-item .product-price';
+              await page.waitForSelector(selector);
+              products = await page.$$eval(
+                selector,
+                (nodes, estimatedPriceMin, estimatedPriceMax) =>
+                  nodes.map((node) => {
+                    const price = parseFloat(node.innerText);
+                    return (
+                      price < estimatedPriceMax && price > estimatedPriceMin
+                    );
+                  }),
+                estimatedPriceMin,
+                estimatedPriceMax,
+              );
+              break;
+            case 'HV':
+              selector = '.products tr:not(.head)';
+              await page.waitForSelector(selector);
+              products = await page.$$eval(
+                selector,
+                (nodes, estimatedPriceMin, estimatedPriceMax) =>
+                  nodes.map((node) => {
+                    const price = parseFloat(
+                      node.querySelector('.price.price-large').innerText,
+                    );
+                    const name = node
+                      .querySelector('a.product-name')
+                      .innerText.toLowerCase();
+                    return (
+                      (name.includes('playstation 5') ||
+                        name.includes('ps5')) &&
+                      price < estimatedPriceMax &&
+                      price > estimatedPriceMin
+                    );
+                  }),
+                estimatedPriceMin,
+                estimatedPriceMax,
+              );
+              break;
+          }
+
+          const productsBool = products.includes(true);
+          if (productsBool) results.push(site);
+
+          // debug
+          if (process.env.DEBUG) console.log(site, productsBool);
+        } catch (err) {
+          console.error(site, err);
+          await page.screenshot({
+            path: `${__dirname}/pildid/${site}_${Date.now()}.png`,
+          });
         }
-        const productsBool = products.includes(true);
-        if (productsBool) results.push(site);
-        if (process.env.DEBUG) console.log(site, productsBool);
       }),
     );
 
@@ -163,14 +196,16 @@ async function scraper() {
 }
 
 let lastTime;
-function checkTime(h) {
-  let intervalLast = lastTime + intervalHours;
+function checkTime() {
+  let intervalLast = lastTime + intervalHours * 60 * 60 * 1000;
 
-  if (intervalLast >= 24) {
-    intervalLast = intervalLast - 24;
-  }
-  if (hourRange.has(h) && (h >= intervalLast || lastTime === undefined)) {
-    lastTime = h;
+  const nowDate = new Date();
+  const now = nowDate.getTime();
+  if (
+    hourRange.has(nowDate.getHours()) &&
+    (now >= intervalLast || lastTime === undefined)
+  ) {
+    lastTime = now;
     return true;
   } else {
     return false;
@@ -178,9 +213,10 @@ function checkTime(h) {
 }
 
 function scheduler() {
+  console.log('starting interval...');
   setInterval(() => {
-    if (checkTime(new Date().getHours())) scraper();
-  }, 60 * 60 * 1000); // 1h
+    if (checkTime(new Date().getHours(), lastTime)) scraper();
+  }, 15 * 60 * 1000); // 15min
 }
 
 // init
