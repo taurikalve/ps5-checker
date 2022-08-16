@@ -117,10 +117,14 @@ async function scraper() {
               await page.waitForSelector(selector);
               products = await page.$$eval(
                 selector,
-                (nodes, estimatedPriceMax) =>
-                  nodes.map(
-                    (node) => parseFloat(node.innerText) < estimatedPriceMax,
-                  ),
+                (nodes, estimatedPriceMin, estimatedPriceMax) =>
+                  nodes.map((node) => {
+                    const price = parseFloat(node.innerText);
+                    return (
+                      price > estimatedPriceMin && price < estimatedPriceMax
+                    );
+                  }),
+                estimatedPriceMin,
                 estimatedPriceMax,
               );
               break;
@@ -181,7 +185,7 @@ async function scraper() {
     );
 
     if (results.length) {
-      results = results.join(', ');
+      results = `leitud: ${results.join(', ')}`;
       await execPromise(`notify-send -u critical "PS5 Leitud!!!" "${results}"`);
     } else {
       results = 'pole';
