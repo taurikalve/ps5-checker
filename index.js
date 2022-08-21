@@ -65,12 +65,10 @@ async function scraper() {
                 page.waitForSelector('body > div:not([class])'),
                 page.waitForSelector(selector),
               ]);
-              products = await page.$$eval(selector, (nodes) =>
-                nodes.map((node) =>
-                  node
-                    .getAttribute('data-product-name')
-                    .toLowerCase()
-                    .includes('playstation'),
+              products = await page.$$eval(selector + '', (nodes) =>
+                nodes.map(
+                  (node) =>
+                    !!parseFloat(node.querySelector('.price').innerText),
                 ),
               );
               break;
